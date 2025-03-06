@@ -2,6 +2,7 @@
 title: "Curating the data"
 output: html_document
 ---
+Tyler
 
 ```{r}
 library(gutenbergr)

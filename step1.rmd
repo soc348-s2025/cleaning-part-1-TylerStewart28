@@ -2,6 +2,7 @@
 title: "Curating the data step 1"
 output: html_document
 ---
+This is a small update.
 
 ```{r}
 library(gutenbergr)

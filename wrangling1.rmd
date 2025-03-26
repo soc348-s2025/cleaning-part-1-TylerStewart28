@@ -2,6 +2,7 @@
 title: "Curating the data"
 output: html_document
 ---
+Tyler
 
 ```{r}
 library(gutenbergr)
@@ -18,7 +19,8 @@ library(forcats)
 I am marking this as do not eval so it doesn't redownload 
 each time. I can save a working copy of the data and use that
 when experimenting,  though still with the ability to run the whole
-process. To load the saved dataset I can use the `load()` function.
+process. To load the saved dataset I can use the `load()` function.  So depending on what I want to do
+I will have one or the other one change to `eval = TRUE`
 
 ```{r eval = FALSE}
 
@@ -77,7 +79,7 @@ table_of_contents$text
 ```
 
 Notice that without the last step there is a lot of "white space" around the titles.  I
-assume that these are " " values rather than tabs or other white 
+assume that these are " " values rather than tabs or other white
 space characters.  However if that turns out to be wrong I will use
 one of the functions from stringr to get rid of them.
 
@@ -129,7 +131,8 @@ Maybe a better way to do this would be to use a join.
 ```{r}
 table_of_contents |> left_join(quakersaints_trimmed, 
                                by = c("gutenberg_id", "text")) ->
-  table_of_contents
+
+table_of_contents
 ```
 
 
@@ -144,6 +147,8 @@ The case_when() function is useful when we have complicated if then/else if/
 else if .../else situations.
 
 ```{r}
+
+
 title_locations <- 
   quakersaints_trimmed |> 
   mutate(text = trimws(text)) |>

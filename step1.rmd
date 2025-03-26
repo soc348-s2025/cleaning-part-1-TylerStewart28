@@ -2,7 +2,7 @@
 title: "Curating the data step 1"
 output: html_document
 ---
-
+Small change
 ```{r}
 library(gutenbergr)
 library(tidytext)
@@ -11,7 +11,7 @@ library(dplyr)
 library(stringr)
 library(ggplot2)
 library(scales)
-#library(ggforce)
+library(ggforce)
 library(forcats)
 ```
 
@@ -20,11 +20,85 @@ each time. I can save a working copy of the data and use that
 when experimenting,  though still with the ability to run the whole
 process. To load the saved dataset I can use the `load()` function.
 
+gtnew function 
+```{r}
+gtnew <- function (gutenberg_id, mirror = NULL, strip = TRUE, meta_fields = NULL, 
+          verbose = TRUE, files = NULL, gutenberg_path = "https://www.gutenberg.org/cache/epub/43885/pg43885-h.zip" ,...) 
+{
+  
+  if (is.null(mirror)) {
+    mirror <- gutenberg_get_mirror(verbose = verbose)
+  }
+  if (inherits(gutenberg_id, "data.frame")) {
+    gutenberg_id <- gutenberg_id[["gutenberg_id"]]
+  }
+  id <- as.character(gutenberg_id)
+  path <- id
+
+  path <- ifelse(nchar(id) == 1, "0", path)
+  full_url <-  gutenberg_path
+ 
+  names(full_url) <- id
+  try_download <- function(url) {
+    ret <- gutenbergr:::read_zip_url(url)
+    print(is.null(ret))
+    if (!is.null(ret)) {
+      return(ret)
+    }
+ 
+
+    for (suffix in c("", "-8", "-0")) {
+      new_url <- glue::glue("{base_url}{suffix}.zip")
+
+      ret <- gutenbergr:::read_zip_url(new_url)
+      if (!is.null(ret)) {
+        return(ret)
+      }
+    }
+    cli::cli_warn(c(`!` = "Could not download a book at {url}.", 
+                    i = "The book may have been archived.", i = "Alternatively, You may need to select a different mirror.", 
+                    `>` = "See https://www.gutenberg.org/MIRRORS.ALL for options."))
+    NULL
+  }
+  if (!is.null(files)) {
+    downloaded <- files %>% stats::setNames(id) %>% purrr::map(readr::read_lines)
+  }
+  else {
+    downloaded <- full_url %>% purrr::map(try_download)
+  }
+  ret <- downloaded %>% purrr::discard(is.null) %>% purrr::map_df(~dplyr::tibble(text = .), 
+                                                                  .id = "gutenberg_id") %>% dplyr::mutate(gutenberg_id = as.integer(gutenberg_id))
+  if (strip) {
+    ret <- ret %>% dplyr::group_by(gutenberg_id) %>% dplyr::do(dplyr::tibble(text = gutenberg_strip(.$text, 
+                                                                                                    ...))) %>% dplyr::ungroup()
+  }
+  if (length(meta_fields) > 0) {
+    meta_fields <- unique(c("gutenberg_id", meta_fields))
+    utils::data("gutenberg_metadata", package = "gutenbergr", 
+                envir = environment())
+    md <- gutenberg_metadata[meta_fields]
+    ret <- ret %>% dplyr::inner_join(md, by = "gutenberg_id")
+  }
+  ret
+}
+
+
+```
+
+
 ```{r eval = FALSE}
 
-quakersaints <-  gutenberg_download(c(19605))
-save(quakersaints, file="quakersaints.rda")
+Philippine <- gtnew(gutenberg_id="43885" ,
+                 gutenberg_path = "https://www.gutenberg.org/cache/epub/43885/pg43885-h.zip")
+# strip manually 
+Philippine <- cousins[334:2306,]
+# there is html so unnest this way
+Philippine |>tidytext::unnest_tokens(word, text, format = "html") -> Philippine_long
+
+save(Philippine, file="data/Philippine.rda")
 ```
 ```{r eval=FALSE}
-load("quakersaints.rda")
+load("data/Philippine.rda")
 ```
+
+

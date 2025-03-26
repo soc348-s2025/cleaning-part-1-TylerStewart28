@@ -2,7 +2,7 @@
 title: "Curating the data step 1"
 output: html_document
 ---
-
+Small change
 ```{r}
 library(gutenbergr)
 library(tidytext)
